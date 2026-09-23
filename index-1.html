@@ -1,0 +1,480 @@
+<!DOCTYPE html>
+<html lang="pa">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>ਬਹੀ: ਟਰੇਡਿੰਗ ਦਾ ਹਿਸਾਬ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Baloo+Paaji+2:wght@600;800&family=Mukta+Mahee:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --paper:#F7F5F0; --card:#FFFFFF; --ink:#1F1A17; --muted:#6B625B; --line:#E2DCD3;
+  --cover:#9E2230; --coverInk:#FFF4E8; --gold:#E0AE1A; --gain:#1C7A4A; --loss:#B3261E; --paperBlue:#3A5A8C;
+  box-sizing:border-box;
+  padding-top:env(safe-area-inset-top,0px);
+  padding-bottom:env(safe-area-inset-bottom,0px);
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    --paper:#1A1714; --card:#24201C; --ink:#F0EBE4; --muted:#A89F95; --line:#3A342D;
+    --cover:#7A1824; --gain:#4CC38A; --loss:#F07167; --paperBlue:#8FB0E3;
+  }
+}
+:root[data-theme="dark"]{
+  --paper:#1A1714; --card:#24201C; --ink:#F0EBE4; --muted:#A89F95; --line:#3A342D;
+  --cover:#7A1824; --gain:#4CC38A; --loss:#F07167; --paperBlue:#8FB0E3;
+}
+*,*::before,*::after{box-sizing:inherit}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+body{margin:0;background:var(--paper);color:var(--ink);
+  font-family:"Mukta Mahee","Noto Sans Gurmukhi","Raavi",system-ui,sans-serif;font-size:17px;line-height:1.6}
+h1,h2,h3{font-family:"Baloo Paaji 2","Mukta Mahee",sans-serif;line-height:1.2;margin:0}
+button,input,select,textarea{font:inherit;color:inherit}
+:focus-visible{outline:3px solid var(--gold);outline-offset:2px}
+.num{font-variant-numeric:tabular-nums}
+.wrap{max-width:680px;margin:0 auto}
+
+/* Cover of the ledger */
+.cover{background:var(--cover);color:var(--coverInk);padding:22px 18px 20px}
+.cover .wrap{border:2px dashed var(--gold);border-radius:6px;padding:16px 16px 14px}
+.cover h1{font-size:64px;font-weight:800;letter-spacing:.02em}
+.cover p{margin:2px 0 0;opacity:.92}
+.today{margin-top:14px;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.today div{background:rgba(0,0,0,.18);border-radius:6px;padding:8px 10px}
+.today small{display:block;opacity:.85;font-size:13px}
+.today b{font-size:22px}
+.lockmsg{margin-top:10px;background:var(--gold);color:#1F1A17;border-radius:6px;padding:8px 10px;font-weight:700}
+.lockmsg[hidden]{display:none}
+
+/* Tabs */
+.tabs{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
+.tabs .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
+.tab{background:none;border:0;padding:12px 2px 9px;cursor:pointer;border-bottom:4px solid transparent;font-weight:700;color:var(--muted)}
+.tab[aria-selected="true"]{border-bottom-color:var(--cover);color:var(--ink)}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) .tab[aria-selected="true"]{border-bottom-color:var(--gold)}}
+
+main .wrap{padding:20px 16px 36px}
+.panel[hidden]{display:none}
+h2{font-size:26px;font-weight:800}
+h3{font-size:19px;font-weight:600;margin:22px 0 8px}
+.lead{color:var(--muted);margin:4px 0 16px}
+
+/* Forms */
+.box{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:14px 16px}
+.field{display:grid;grid-template-columns:1fr 130px;align-items:center;gap:10px;margin:8px 0}
+.field span{font-size:15.5px}
+.field input,.field select{border:1px solid var(--line);border-radius:8px;padding:7px 9px;background:var(--paper);width:100%;text-align:right}
+.field select{text-align:left}
+.stack{display:grid;gap:4px;margin:10px 0}
+.stack input,.stack textarea,.stack select{border:1px solid var(--line);border-radius:8px;padding:8px 10px;background:var(--paper);width:100%}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.seg{display:flex;border:1.5px solid var(--ink);border-radius:8px;overflow:hidden}
+.seg button{flex:1;border:0;background:transparent;padding:7px 4px;cursor:pointer;font-weight:600}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper)}
+.seg button:disabled{opacity:.35;cursor:not-allowed}
+.btn{border:0;background:var(--cover);color:#fff;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer;width:100%;margin-top:10px}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.verdict{margin-top:12px;border-top:2px dashed var(--line);padding-top:12px}
+.verdict .big{font-family:"Baloo Paaji 2",sans-serif;font-size:30px;font-weight:800}
+.good{color:var(--gain)} .bad{color:var(--loss)}
+.checks label{display:flex;gap:10px;align-items:flex-start;padding:6px 0;border-bottom:1px solid var(--line)}
+.checks label:last-child{border-bottom:0}
+.checks input{width:20px;height:20px;margin-top:4px;accent-color:var(--cover);flex:none}
+
+/* Ledger list */
+.ledger{list-style:none;margin:10px 0 0;padding:0;background:var(--card);border:1px solid var(--line);border-radius:10px;
+  background-image:linear-gradient(90deg,transparent 46px,var(--cover) 46px,var(--cover) 47px,transparent 47px)}
+.ledger li{display:grid;grid-template-columns:40px 1fr auto;gap:2px 12px;padding:10px 12px 10px 6px;border-bottom:1px solid var(--line)}
+.ledger li:last-child{border-bottom:0}
+.ledger .d{font-size:12.5px;color:var(--muted);text-align:center;line-height:1.2}
+.ledger .t{font-weight:600}
+.ledger .m{grid-column:2/-1;font-size:14.5px;color:var(--muted)}
+.ledger .p{font-weight:800;text-align:right}
+.tag{display:inline-block;font-size:12px;font-weight:700;border-radius:4px;padding:0 6px;margin-left:4px;vertical-align:1px}
+.tag.paper{background:var(--paperBlue);color:#fff}
+.tag.broke{background:var(--loss);color:#fff}
+.del{background:none;border:0;color:var(--muted);text-decoration:underline;cursor:pointer;font-size:13px;padding:0}
+.empty{padding:14px;color:var(--muted)}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.stat{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:10px 12px}
+.stat small{display:block;color:var(--muted);font-size:13.5px}
+.stat b{font-size:22px}
+.bars{display:grid;gap:8px}
+.bar{display:grid;grid-template-columns:110px 1fr 80px;gap:8px;align-items:center;font-size:15px}
+.bar .track{height:14px;background:var(--line);border-radius:7px;position:relative;overflow:hidden}
+.bar .fill{position:absolute;top:0;bottom:0;border-radius:7px}
+.bar .v{text-align:right;font-weight:700}
+.progress{height:16px;background:var(--line);border-radius:8px;overflow:hidden;margin:8px 0}
+.progress div{height:100%;background:var(--paperBlue)}
+.note{background:var(--card);border-left:4px solid var(--gold);padding:10px 14px;margin:14px 0;border-radius:0 8px 8px 0}
+.plain{margin:0;padding-left:1.2em}.plain li{margin:6px 0}
+textarea.backup{min-height:90px;font-size:13px;font-family:ui-monospace,monospace}
+footer{color:var(--muted);font-size:14px;text-align:center;padding:0 16px 28px}
+footer p{margin:6px 0}
+footer .credit{color:var(--ink);font-size:15.5px;border-top:1px solid var(--line);padding-top:16px;max-width:680px;margin:0 auto 10px}
+footer a{color:var(--cover);font-weight:700}
+@media (prefers-color-scheme: dark){:root:not([data-theme="light"]) footer a{color:var(--gold)}}
+@media (max-width:380px){.field{grid-template-columns:1fr 110px}.bar{grid-template-columns:90px 1fr 70px}}
+</style>
+</head>
+<body>
+
+<header class="cover">
+  <div class="wrap">
+    <h1>ਬਹੀ</h1>
+    <p>ਟਰੇਡਿੰਗ ਦਾ ਹਿਸਾਬ-ਕਿਤਾਬ। ਪਹਿਲਾਂ ਹਿਸਾਬ, ਫਿਰ ਟਰੇਡ।</p>
+    <div class="today">
+      <div><small>ਅੱਜ ਦਾ ਅਸਲ ਨਤੀਜਾ</small><b class="num" id="todayPnl">₹0</b></div>
+      <div><small>ਅੱਜ ਨੁਕਸਾਨ ਦੀ ਹੱਦ ਬਾਕੀ</small><b class="num" id="todayLeft">₹0</b></div>
+    </div>
+    <div class="lockmsg" id="lockMsg" hidden></div>
+  </div>
+</header>
+
+<nav class="tabs" role="tablist">
+  <div class="wrap">
+    <button class="tab" role="tab" aria-selected="true" data-tab="calc">ਹਿਸਾਬ</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="book">ਬਹੀ</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="mirror">ਸ਼ੀਸ਼ਾ</button>
+    <button class="tab" role="tab" aria-selected="false" data-tab="facts">ਜਾਣਕਾਰੀ</button>
+  </div>
+</nav>
+
+<main><div class="wrap">
+
+<!-- CALC -->
+<section class="panel" id="calc">
+  <h2>ਟਰੇਡ ਤੋਂ ਪਹਿਲਾਂ ਹਿਸਾਬ</h2>
+  <p class="lead">ਪਹਿਲਾਂ ਤੈਅ ਕਰੋ ਕਿ ਕਿੰਨਾ ਗੁਆਉਣ ਲਈ ਤਿਆਰ ਹੋ, ਫਿਰ ਦੇਖੋ ਕਿ ਇਹ ਟਰੇਡ ਉਸ ਵਿੱਚ ਆਉਂਦਾ ਹੈ ਜਾਂ ਨਹੀਂ।</p>
+
+  <div class="box">
+    <label class="field"><span>ਕੁੱਲ ਟਰੇਡਿੰਗ ਪੂੰਜੀ (₹)</span><input class="num" id="cap" type="number" inputmode="numeric" min="0"></label>
+    <label class="field"><span>ਇੱਕ ਟਰੇਡ ਵਿੱਚ ਵੱਧ ਤੋਂ ਵੱਧ ਨੁਕਸਾਨ (%)</span><input class="num" id="riskPct" type="number" inputmode="decimal" min="0" step="0.5"></label>
+    <label class="field"><span>ਇੱਕ ਦਿਨ ਵਿੱਚ ਵੱਧ ਤੋਂ ਵੱਧ ਨੁਕਸਾਨ (%)</span><input class="num" id="dayPct" type="number" inputmode="decimal" min="0" step="0.5"></label>
+  </div>
+
+  <h3>ਇਹ ਟਰੇਡ</h3>
+  <div class="box">
+    <label class="field"><span>ਐਂਟਰੀ ਕੀਮਤ / ਪ੍ਰੀਮੀਅਮ (₹)</span><input class="num" id="entry" type="number" inputmode="decimal" value="120" min="0"></label>
+    <label class="field"><span>ਸਟਾਪਲੌਸ ਕੀਮਤ (₹)</span><input class="num" id="stop" type="number" inputmode="decimal" value="100" min="0"></label>
+    <label class="field"><span>ਲੌਟ ਸਾਈਜ਼ (ਬ੍ਰੋਕਰ ਐਪ ਤੋਂ ਦੇਖੋ; ਸ਼ੇਅਰ ਲਈ 1)</span><input class="num" id="lot" type="number" inputmode="numeric" value="75" min="1"></label>
+    <div class="verdict" id="verdict" aria-live="polite"></div>
+  </div>
+
+  <h3>ਆਪਣੇ ਆਪ ਨਾਲ ਪੰਜ ਵਾਅਦੇ</h3>
+  <div class="box checks" id="checks">
+    <label><input type="checkbox"><span>ਸਟਾਪਲੌਸ ਟਰੇਡ ਤੋਂ ਪਹਿਲਾਂ ਤੈਅ ਕਰ ਲਿਆ ਹੈ, ਅਤੇ ਉਸ ਨੂੰ ਹਿਲਾਵਾਂਗਾ ਨਹੀਂ।</span></label>
+    <label><input type="checkbox"><span>ਇਹ ਟਰੇਡ ਪਿਛਲਾ ਨੁਕਸਾਨ ਪੂਰਾ ਕਰਨ ਲਈ (ਬਦਲਾ) ਨਹੀਂ ਹੈ।</span></label>
+    <label><input type="checkbox"><span>ਇਹ ਕਿਸੇ ਟਿਪ, Telegram ਜਾਂ YouTube ਕਾਲ ਤੋਂ ਨਹੀਂ, ਮੇਰੇ ਆਪਣੇ ਨਿਯਮ ਤੋਂ ਹੈ।</span></label>
+    <label><input type="checkbox"><span>ਬ੍ਰੋਕਰੇਜ, ਟੈਕਸ ਅਤੇ ਚਾਰਜਿਜ਼ ਵੀ ਗਿਣ ਲਏ ਹਨ।</span></label>
+    <label><input type="checkbox"><span>ਜੇ ਇਹ ਪੈਸਾ ਪੂਰਾ ਚਲਾ ਜਾਵੇ ਤਾਂ ਵੀ ਘਰ ਦਾ ਕੋਈ ਜ਼ਰੂਰੀ ਕੰਮ ਨਹੀਂ ਰੁਕੇਗਾ।</span></label>
+  </div>
+  <button class="btn" id="toBook" disabled>ਪੰਜੇ ਵਾਅਦੇ ਪੂਰੇ ਕਰੋ, ਫਿਰ ਬਹੀ ਵਿੱਚ ਲਿਖੋ</button>
+</section>
+
+<!-- BOOK -->
+<section class="panel" id="book" hidden>
+  <h2>ਬਹੀ ਵਿੱਚ ਲਿਖੋ</h2>
+  <p class="lead">ਹਰ ਟਰੇਡ ਲਿਖੋ, ਫ਼ਾਇਦੇ ਵਾਲਾ ਵੀ ਅਤੇ ਨੁਕਸਾਨ ਵਾਲਾ ਵੀ। ਪੇਪਰ ਟਰੇਡ (ਬਿਨਾਂ ਪੈਸੇ ਦੇ, ਸਿਰਫ਼ ਕਾਗ਼ਜ਼ ਉੱਤੇ) ਵੀ ਇੱਥੇ ਹੀ ਲਿਖੋ।</p>
+
+  <div class="box">
+    <div class="stack"><span>ਪੈਸਾ</span>
+      <div class="seg" id="modeSeg">
+        <button type="button" data-v="paper" aria-pressed="true">ਪੇਪਰ (ਬਿਨਾਂ ਪੈਸੇ)</button>
+        <button type="button" data-v="real" aria-pressed="false">ਅਸਲ ਪੈਸਾ</button>
+      </div>
+      <small class="bad" id="modeWarn" hidden></small>
+    </div>
+    <div class="row2">
+      <label class="stack"><span>ਤਾਰੀਖ਼</span><input id="fDate" type="date"></label>
+      <label class="stack"><span>ਕਿਸਮ</span>
+        <select id="fKind">
+          <option>ਆਪਸ਼ਨ ਖ਼ਰੀਦ</option><option>ਆਪਸ਼ਨ ਵੇਚ</option><option>ਇੰਟਰਾਡੇ</option><option>ਸਵਿੰਗ</option><option>ਕ੍ਰਿਪਟੋ</option><option>ਲੰਬਾ ਨਿਵੇਸ਼</option>
+        </select></label>
+    </div>
+    <label class="stack"><span>ਕੀ ਟਰੇਡ ਕੀਤਾ</span><input id="fWhat" placeholder="ਜਿਵੇਂ: ਨਿਫ਼ਟੀ ਕਾਲ, 1 ਲੌਟ"></label>
+    <label class="stack"><span>ਕਿਉਂ ਕੀਤਾ (ਤੁਹਾਡਾ ਨਿਯਮ)</span><input id="fWhy" placeholder="ਜਿਵੇਂ: ਸਪੋਰਟ ਤੋਂ ਉਛਾਲ"></label>
+    <label class="stack"><span>ਨਤੀਜਾ ₹ (ਚਾਰਜਿਜ਼ ਕੱਟ ਕੇ; ਨੁਕਸਾਨ ਲਈ ਮਾਈਨਸ, ਜਿਵੇਂ -350)</span><input class="num" id="fPnl" type="number" inputmode="decimal"></label>
+    <div class="row2">
+      <div class="stack"><span>ਨਿਯਮ ਮੰਨੇ?</span>
+        <div class="seg" id="rulesSeg">
+          <button type="button" data-v="yes" aria-pressed="true">ਹਾਂ</button>
+          <button type="button" data-v="no" aria-pressed="false">ਨਹੀਂ</button>
+        </div></div>
+      <label class="stack"><span>ਮਨ ਦੀ ਹਾਲਤ</span>
+        <select id="fMood"><option>ਸ਼ਾਂਤ</option><option>ਡਰ</option><option>ਲਾਲਚ</option><option>ਬਦਲਾ</option><option>ਬੋਰੀਅਤ</option></select></label>
+    </div>
+    <button class="btn" id="save">ਬਹੀ ਵਿੱਚ ਲਿਖੋ</button>
+    <small id="saveMsg" class="lead" aria-live="polite"></small>
+  </div>
+
+  <h3>ਪਿਛਲੇ ਟਰੇਡ</h3>
+  <ul class="ledger" id="list"></ul>
+</section>
+
+<!-- MIRROR -->
+<section class="panel" id="mirror" hidden>
+  <h2>ਸ਼ੀਸ਼ਾ</h2>
+  <p class="lead">ਅੰਕੜੇ ਝੂਠ ਨਹੀਂ ਬੋਲਦੇ। ਇੱਥੇ ਦਿਖੇਗਾ ਕਿ ਪੈਸਾ ਕਿੱਥੇ ਬਣਦਾ ਹੈ ਅਤੇ ਕਿੱਥੇ ਜਾਂਦਾ ਹੈ।</p>
+  <div class="seg" id="viewSeg" style="margin-bottom:12px">
+    <button type="button" data-v="real" aria-pressed="false">ਅਸਲ</button>
+    <button type="button" data-v="paper" aria-pressed="true">ਪੇਪਰ</button>
+  </div>
+  <div id="mirrorOut"></div>
+
+  <h3>ਪੇਪਰ ਟਰੇਡਿੰਗ ਦੀ ਚੁਣੌਤੀ</h3>
+  <div class="box" id="challenge"></div>
+</section>
+
+<!-- FACTS -->
+<section class="panel" id="facts" hidden>
+  <h2>ਜਾਣਕਾਰੀ</h2>
+  <h3 style="margin-top:12px">SEBI ਦੇ ਅੰਕੜੇ</h3>
+  <ul class="plain">
+    <li>ਵਿੱਤੀ ਸਾਲ 2025-26 ਵਿੱਚ F&amp;O ਕਰਨ ਵਾਲੇ ਲਗਭਗ 88% ਆਮ ਟਰੇਡਰ ਘਾਟੇ ਵਿੱਚ ਰਹੇ। ਔਸਤ ਨੁਕਸਾਨ ਲਗਭਗ ₹1.17 ਲੱਖ ਪ੍ਰਤੀ ਟਰੇਡਰ ਸੀ।</li>
+    <li>ਇਸ ਨੁਕਸਾਨ ਦਾ ਲਗਭਗ 92% ਹਿੱਸਾ ਆਪਸ਼ਨਾਂ ਵਿੱਚੋਂ ਆਇਆ।</li>
+    <li>ਉਸੇ ਸਾਲ ਲਗਭਗ ₹25,000 ਕਰੋੜ ਸਿਰਫ਼ ਚਾਰਜਿਜ਼ ਅਤੇ ਖ਼ਰਚਿਆਂ ਵਿੱਚ ਗਏ।</li>
+    <li>2021-22 ਤੋਂ 2023-24 ਦੇ ਤਿੰਨ ਸਾਲਾਂ ਵਿੱਚ ਸਿਰਫ਼ 1% ਟਰੇਡਰ ਸਾਲ ਦਾ ₹1 ਲੱਖ ਤੋਂ ਵੱਧ ਕਮਾ ਸਕੇ।</li>
+    <li>ਲਗਾਤਾਰ ਘਾਟਾ ਖਾਣ ਵਾਲਿਆਂ ਵਿੱਚੋਂ 75% ਤੋਂ ਵੱਧ ਫਿਰ ਵੀ ਟਰੇਡ ਕਰਦੇ ਰਹੇ।</li>
+  </ul>
+  <div class="note">ਇਸ ਬਹੀ ਦਾ ਮਕਸਦ ਇਹੀ ਹੈ ਕਿ ਤੁਸੀਂ ਉਸ ਆਖ਼ਰੀ ਗਿਣਤੀ ਵਿੱਚ ਨਾ ਆਓ। ਪਹਿਲਾਂ ਪੇਪਰ ਉੱਤੇ ਸਾਬਤ ਕਰੋ, ਫਿਰ ਪੈਸਾ ਲਗਾਓ।</div>
+
+  <h3>ਕਾਨੂੰਨ ਦੀ ਹੱਦ</h3>
+  <ul class="plain">
+    <li>SEBI ਦੀ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਤੋਂ ਬਿਨਾਂ ਕਿਸੇ ਨੂੰ ਖ਼ਰੀਦੋ/ਵੇਚੋ ਦੀ ਟਿਪ ਜਾਂ ਕਾਲ ਦੇਣਾ ਮਨ੍ਹਾ ਹੈ, ਭਾਵੇਂ ਮੁਫ਼ਤ ਹੋਵੇ ਜਾਂ ਪੈਸੇ ਲੈ ਕੇ।</li>
+    <li>ਆਮ ਸਿੱਖਿਆ ਦੇਣੀ ਠੀਕ ਹੈ, ਪਰ ਉਸ ਵਿੱਚ ਕਿਸੇ ਖ਼ਾਸ ਸ਼ੇਅਰ ਦਾ ਇਸ਼ਾਰਾ, ਲਾਈਵ ਕੀਮਤਾਂ ਜਾਂ ਪੱਕੇ ਮੁਨਾਫ਼ੇ ਦੇ ਦਾਅਵੇ ਨਹੀਂ ਹੋਣੇ ਚਾਹੀਦੇ।</li>
+    <li>ਇਹ ਬਹੀ ਕੋਈ ਟਿਪ ਨਹੀਂ ਦਿੰਦੀ, ਸਿਰਫ਼ ਤੁਹਾਡਾ ਆਪਣਾ ਹਿਸਾਬ ਰੱਖਦੀ ਹੈ।</li>
+  </ul>
+
+  <h3>ਬੈਕਅੱਪ</h3>
+  <p class="lead" style="margin-top:0">ਸਾਰਾ ਡਾਟਾ ਸਿਰਫ਼ ਇਸ ਫ਼ੋਨ ਦੇ ਬ੍ਰਾਊਜ਼ਰ ਵਿੱਚ ਹੈ, ਕਿਸੇ ਹੋਰ ਕੋਲ ਨਹੀਂ ਜਾਂਦਾ। ਬ੍ਰਾਊਜ਼ਰ ਸਾਫ਼ ਕਰਨ ਨਾਲ ਮਿਟ ਸਕਦਾ ਹੈ, ਇਸ ਲਈ ਕਦੇ-ਕਦੇ ਬੈਕਅੱਪ ਕਾਪੀ ਕਰਕੇ ਆਪਣੇ ਆਪ ਨੂੰ WhatsApp ਕਰ ਦਿਓ।</p>
+  <div class="box">
+    <button class="btn ghost" id="copyBackup" style="margin-top:0">ਬੈਕਅੱਪ ਕਾਪੀ ਕਰੋ</button>
+    <label class="stack" style="margin-top:14px"><span>ਬੈਕਅੱਪ ਵਾਪਸ ਲਿਆਉਣ ਲਈ ਇੱਥੇ ਪੇਸਟ ਕਰੋ</span><textarea class="backup" id="restoreTxt"></textarea></label>
+    <button class="btn ghost" id="restore">ਬੈਕਅੱਪ ਵਾਪਸ ਲਿਆਓ</button>
+    <small class="lead" id="backupMsg" aria-live="polite"></small>
+  </div>
+</section>
+
+</div></main>
+
+<footer>
+  <p class="credit">ਬਣਾਇਆ: <b>ਸਬਰ, ਮਾਨਸਾ</b><br>
+  ਸੁਝਾਅ ਲਈ Instagram: <a href="https://www.instagram.com/dawinder_____" target="_blank" rel="noopener">@dawinder_____</a></p>
+  <p>ਇਹ ਟੂਲ ਨਿਵੇਸ਼ ਦੀ ਸਲਾਹ ਨਹੀਂ ਦਿੰਦਾ। ਟਰੇਡਿੰਗ ਵਿੱਚ ਪੈਸਾ ਡੁੱਬ ਸਕਦਾ ਹੈ; ਫ਼ੈਸਲਾ ਤੁਹਾਡਾ ਆਪਣਾ ਹੈ।</p>
+  <p>© 2026 ਸਬਰ</p>
+</footer>
+
+<script>
+(function(){
+  const $=id=>document.getElementById(id);
+  const KEY='bahi-v1';
+  const inr=n=>(n<0?'-':'')+'₹'+Math.round(Math.abs(n)).toLocaleString('en-IN');
+  const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+
+  /* ---------- State ---------- */
+  let S={settings:{cap:10000,riskPct:2,dayPct:5},trades:[]};
+  try{const raw=localStorage.getItem(KEY);if(raw){const p=JSON.parse(raw);if(p&&p.settings&&Array.isArray(p.trades))S=p}}catch(e){}
+  const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+
+  /* ---------- Tabs ---------- */
+  const tabs=[...document.querySelectorAll('.tab')];
+  function openTab(name){
+    tabs.forEach(t=>t.setAttribute('aria-selected',t.dataset.tab===name?'true':'false'));
+    document.querySelectorAll('.panel').forEach(p=>p.hidden=p.id!==name);
+    if(name==='mirror')renderMirror();
+    window.scrollTo({top:document.querySelector('.tabs').offsetTop});
+  }
+  tabs.forEach(t=>t.addEventListener('click',()=>openTab(t.dataset.tab)));
+
+  /* ---------- Segmented controls ---------- */
+  function seg(id,onChange){
+    const el=$(id);
+    el.addEventListener('click',e=>{const b=e.target.closest('button');if(!b||b.disabled)return;
+      el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x===b?'true':'false'));onChange&&onChange(b.dataset.v)});
+    return{get:()=>el.querySelector('[aria-pressed="true"]').dataset.v,
+      set:v=>el.querySelectorAll('button').forEach(x=>x.setAttribute('aria-pressed',x.dataset.v===v?'true':'false')),el};
+  }
+  const modeSeg=seg('modeSeg'), rulesSeg=seg('rulesSeg'), viewSeg=seg('viewSeg',()=>renderMirror());
+
+  /* ---------- Limits: daily loss + cooldown ---------- */
+  function todayReal(){return S.trades.filter(t=>t.mode==='real'&&t.date===todayStr())}
+  function status(){
+    const cap=S.settings.cap||0, dayLimit=cap*(S.settings.dayPct||0)/100;
+    const tr=todayReal(); const pnl=tr.reduce((a,t)=>a+t.pnl,0);
+    const left=dayLimit+Math.min(0,pnl);
+    let lock=null;
+    if(dayLimit>0&&pnl<=-dayLimit)lock='ਅੱਜ ਦੀ ਨੁਕਸਾਨ ਹੱਦ ਪੂਰੀ ਹੋ ਗਈ। ਅੱਜ ਅਸਲ ਪੈਸੇ ਨਾਲ ਹੋਰ ਟਰੇਡ ਨਹੀਂ। ਕੱਲ੍ਹ ਨਵਾਂ ਦਿਨ ਹੈ।';
+    else{
+      const sorted=[...tr].sort((a,b)=>a.ts-b.ts); const last2=sorted.slice(-2);
+      if(last2.length===2&&last2.every(t=>t.pnl<0)){
+        const until=last2[1].ts+30*60*1000; const mins=Math.ceil((until-Date.now())/60000);
+        if(mins>0)lock=`ਲਗਾਤਾਰ ਦੋ ਘਾਟੇ ਹੋਏ ਹਨ। ${mins} ਮਿੰਟ ਰੁਕੋ, ਪਾਣੀ ਪੀਓ, ਸਕਰੀਨ ਤੋਂ ਦੂਰ ਹੋਵੋ।`;
+      }
+    }
+    return{pnl,left:Math.max(0,left),dayLimit,lock};
+  }
+  function renderStatus(){
+    const s=status();
+    $('todayPnl').textContent=inr(s.pnl);
+    $('todayLeft').textContent=s.dayLimit>0?inr(s.left):'ਹੱਦ ਨਹੀਂ ਰੱਖੀ';
+    $('lockMsg').hidden=!s.lock; $('lockMsg').textContent=s.lock||'';
+    const realBtn=$('modeSeg').querySelector('[data-v="real"]');
+    realBtn.disabled=!!s.lock;
+    if(s.lock&&modeSeg.get()==='real')modeSeg.set('paper');
+    $('modeWarn').hidden=!s.lock; $('modeWarn').textContent=s.lock?'ਅਸਲ ਪੈਸੇ ਵਾਲਾ ਬਟਨ ਹੁਣ ਬੰਦ ਹੈ। ਪੇਪਰ ਟਰੇਡ ਲਿਖ ਸਕਦੇ ਹੋ।':'';
+  }
+  setInterval(renderStatus,30000);
+
+  /* ---------- Calculator ---------- */
+  ['cap','riskPct','dayPct'].forEach(k=>{$(k).value=S.settings[k];
+    $(k).addEventListener('input',()=>{S.settings[k]=Math.max(0,parseFloat($(k).value)||0);persist();calc();renderStatus()})});
+  ['entry','stop','lot'].forEach(k=>$(k).addEventListener('input',calc));
+  function calc(){
+    const cap=S.settings.cap||0, maxLoss=cap*(S.settings.riskPct||0)/100;
+    const entry=parseFloat($('entry').value)||0, stop=parseFloat($('stop').value)||0, lot=Math.max(1,parseFloat($('lot').value)||1);
+    const perLot=Math.abs(entry-stop)*lot;
+    const v=$('verdict'); v.innerHTML='';
+    const add=(html,cls)=>{const d=document.createElement('div');if(cls)d.className=cls;d.innerHTML=html;v.appendChild(d);return d};
+    if(!cap||!maxLoss){add('ਪਹਿਲਾਂ ਉੱਪਰ ਪੂੰਜੀ ਅਤੇ ਨੁਕਸਾਨ ਦੀ % ਭਰੋ।');return}
+    if(!entry||entry===stop){add('ਐਂਟਰੀ ਅਤੇ ਸਟਾਪਲੌਸ ਦੋਵੇਂ ਭਰੋ, ਅਤੇ ਦੋਵੇਂ ਵੱਖ-ਵੱਖ ਹੋਣ।');return}
+    const lots=Math.floor(maxLoss/perLot);
+    add(`ਇਸ ਟਰੇਡ ਵਿੱਚ ਤੁਸੀਂ ਵੱਧ ਤੋਂ ਵੱਧ <b class="num">${inr(maxLoss)}</b> ਗੁਆ ਸਕਦੇ ਹੋ। ਇੱਕ ਲੌਟ ਉੱਤੇ ਸਟਾਪਲੌਸ ਲੱਗਣ ਨਾਲ <b class="num">${inr(perLot)}</b> ਜਾਣਗੇ।`);
+    if(lots<1){
+      add('ਇਹ ਟਰੇਡ ਨਾ ਕਰੋ','big bad');
+      add(`ਇੱਕ ਲੌਟ ਵੀ ਤੁਹਾਡੀ ਹੱਦ ਤੋਂ ${(perLot/maxLoss).toFixed(1)} ਗੁਣਾ ਵੱਡਾ ਹੈ। ਇਸ ਨੂੰ ਪੇਪਰ ਉੱਤੇ ਕਰੋ, ਜਾਂ ਅਜਿਹਾ ਟਰੇਡ ਲੱਭੋ ਜੋ ਤੁਹਾਡੀ ਪੂੰਜੀ ਮੁਤਾਬਕ ਹੋਵੇ। ਸਟਾਪਲੌਸ ਨੂੰ ਸਿਰਫ਼ ਹਿਸਾਬ ਫਿੱਟ ਕਰਨ ਲਈ ਛੋਟਾ ਨਾ ਕਰੋ।`);
+    } else {
+      add(`ਵੱਧ ਤੋਂ ਵੱਧ ${lots} ${lot>1?'ਲੌਟ':'ਸ਼ੇਅਰ'}`,'big good');
+      const cost=entry*lot*lots;
+      add(`ਇਸ ਉੱਤੇ ਲਗਭਗ <b class="num">${inr(cost)}</b> ਲੱਗਣਗੇ${cost>cap?', <span class="bad">ਜੋ ਤੁਹਾਡੀ ਪੂੰਜੀ ਤੋਂ ਵੱਧ ਹੈ</span>':''}।`);
+    }
+  }
+
+  /* ---------- Checklist ---------- */
+  const boxes=[...document.querySelectorAll('#checks input')];
+  boxes.forEach(b=>b.addEventListener('change',()=>{const ok=boxes.every(x=>x.checked);
+    $('toBook').disabled=!ok;$('toBook').textContent=ok?'ਹੁਣ ਬਹੀ ਵਿੱਚ ਲਿਖੋ':'ਪੰਜੇ ਵਾਅਦੇ ਪੂਰੇ ਕਰੋ, ਫਿਰ ਬਹੀ ਵਿੱਚ ਲਿਖੋ'}));
+  $('toBook').addEventListener('click',()=>{boxes.forEach(b=>b.checked=false);$('toBook').disabled=true;
+    $('toBook').textContent='ਪੰਜੇ ਵਾਅਦੇ ਪੂਰੇ ਕਰੋ, ਫਿਰ ਬਹੀ ਵਿੱਚ ਲਿਖੋ';openTab('book');$('fWhat').focus()});
+
+  /* ---------- Journal ---------- */
+  $('fDate').value=todayStr();
+  $('save').addEventListener('click',()=>{
+    const pnlRaw=$('fPnl').value.trim(); const msg=$('saveMsg');
+    if(pnlRaw===''||isNaN(parseFloat(pnlRaw))){msg.textContent='ਨਤੀਜਾ ₹ ਵਿੱਚ ਭਰੋ। ਨੁਕਸਾਨ ਹੈ ਤਾਂ ਅੱਗੇ ਮਾਈਨਸ ਲਾਓ।';return}
+    const mode=modeSeg.get();
+    if(mode==='real'&&status().lock){msg.textContent='ਅਸਲ ਪੈਸੇ ਵਾਲਾ ਟਰੇਡ ਹੁਣ ਬੰਦ ਹੈ।';return}
+    S.trades.push({id:Date.now().toString(36),date:$('fDate').value||todayStr(),kind:$('fKind').value,mode,
+      what:$('fWhat').value.trim(),why:$('fWhy').value.trim(),pnl:parseFloat(pnlRaw),rules:rulesSeg.get(),mood:$('fMood').value,ts:Date.now()});
+    persist();
+    ['fWhat','fWhy','fPnl'].forEach(k=>$(k).value='');rulesSeg.set('yes');$('fMood').selectedIndex=0;
+    msg.textContent='ਲਿਖਿਆ ਗਿਆ।';setTimeout(()=>msg.textContent='',2000);
+    renderList();renderStatus();
+  });
+  function renderList(){
+    const ul=$('list');ul.innerHTML='';
+    const items=[...S.trades].sort((a,b)=>b.date.localeCompare(a.date)||b.ts-a.ts);
+    if(!items.length){const li=document.createElement('li');li.className='empty';li.style.display='block';li.textContent='ਅਜੇ ਕੁਝ ਨਹੀਂ ਲਿਖਿਆ। ਪਹਿਲਾ ਪੇਪਰ ਟਰੇਡ ਲਿਖ ਕੇ ਸ਼ੁਰੂ ਕਰੋ।';ul.appendChild(li);return}
+    items.forEach(t=>{
+      const li=document.createElement('li');
+      const [y,m,d]=t.date.split('-');
+      const dd=document.createElement('div');dd.className='d num';dd.textContent=`${d}/${m}`;
+      const tt=document.createElement('div');tt.className='t';tt.textContent=t.what||t.kind;
+      if(t.mode==='paper'){const g=document.createElement('span');g.className='tag paper';g.textContent='ਪੇਪਰ';tt.appendChild(g)}
+      if(t.rules==='no'){const g=document.createElement('span');g.className='tag broke';g.textContent='ਨਿਯਮ ਟੁੱਟਿਆ';tt.appendChild(g)}
+      const p=document.createElement('div');p.className='p num '+(t.pnl>=0?'good':'bad');p.textContent=inr(t.pnl);
+      const mm=document.createElement('div');mm.className='m';
+      mm.textContent=[t.kind,t.why&&('ਕਾਰਨ: '+t.why),'ਮਨ: '+t.mood].filter(Boolean).join(', ')+'  ';
+      const del=document.createElement('button');del.className='del';del.textContent='ਮਿਟਾਓ';
+      del.onclick=()=>{if(confirm('ਇਹ ਟਰੇਡ ਮਿਟਾਉਣਾ ਹੈ?')){S.trades=S.trades.filter(x=>x.id!==t.id);persist();renderList();renderStatus()}};
+      mm.appendChild(del);
+      li.append(dd,tt,p,mm);ul.appendChild(li);
+    });
+  }
+
+  /* ---------- Mirror (stats) ---------- */
+  function group(list,key){const g={};list.forEach(t=>{(g[t[key]]=g[t[key]]||[]).push(t)});return g}
+  function barList(title,g){
+    const wrap=document.createElement('div');
+    const h=document.createElement('h3');h.textContent=title;wrap.appendChild(h);
+    const rows=Object.entries(g).map(([k,v])=>[k,v.reduce((a,t)=>a+t.pnl,0),v.length]);
+    const max=Math.max(1,...rows.map(r=>Math.abs(r[1])));
+    const box=document.createElement('div');box.className='box bars';
+    rows.sort((a,b)=>a[1]-b[1]).forEach(([k,sum,n])=>{
+      const r=document.createElement('div');r.className='bar';
+      const l=document.createElement('span');l.textContent=`${k} (${n})`;
+      const tr=document.createElement('div');tr.className='track';
+      const f=document.createElement('div');f.className='fill';f.style.width=(Math.abs(sum)/max*100)+'%';
+      f.style.background=sum>=0?'var(--gain)':'var(--loss)';tr.appendChild(f);
+      const v=document.createElement('span');v.className='v num '+(sum>=0?'good':'bad');v.textContent=inr(sum);
+      r.append(l,tr,v);box.appendChild(r);
+    });
+    wrap.appendChild(box);return wrap;
+  }
+  function renderMirror(){
+    const mode=viewSeg.get(); const list=S.trades.filter(t=>t.mode===mode);
+    const out=$('mirrorOut');out.innerHTML='';
+    if(!list.length){const p=document.createElement('p');p.className='lead';
+      p.textContent=mode==='real'?'ਅਜੇ ਕੋਈ ਅਸਲ ਟਰੇਡ ਨਹੀਂ ਲਿਖਿਆ।':'ਅਜੇ ਕੋਈ ਪੇਪਰ ਟਰੇਡ ਨਹੀਂ ਲਿਖਿਆ। ਬਹੀ ਵਿੱਚ ਜਾ ਕੇ ਪਹਿਲਾ ਲਿਖੋ।';out.appendChild(p)}
+    else{
+      const total=list.reduce((a,t)=>a+t.pnl,0), wins=list.filter(t=>t.pnl>0), losses=list.filter(t=>t.pnl<0);
+      const avgW=wins.length?wins.reduce((a,t)=>a+t.pnl,0)/wins.length:0;
+      const avgL=losses.length?losses.reduce((a,t)=>a+t.pnl,0)/losses.length:0;
+      const grid=document.createElement('div');grid.className='stats';
+      [['ਕੁੱਲ ਨਤੀਜਾ',inr(total),total>=0?'good':'bad'],['ਟਰੇਡ',list.length,''],
+       ['ਜਿੱਤ ਦੀ ਦਰ',Math.round(wins.length/list.length*100)+'%',''],
+       ['ਔਸਤ ਜਿੱਤ / ਔਸਤ ਹਾਰ',inr(avgW)+' / '+inr(avgL),'']].forEach(([k,v,c])=>{
+        const s=document.createElement('div');s.className='stat';
+        const sm=document.createElement('small');sm.textContent=k;const b=document.createElement('b');b.className='num '+c;b.textContent=v;
+        s.append(sm,b);grid.appendChild(s)});
+      out.appendChild(grid);
+      const rulesMap={'ਨਿਯਮ ਮੰਨੇ':list.filter(t=>t.rules==='yes'),'ਨਿਯਮ ਤੋੜੇ':list.filter(t=>t.rules==='no')};
+      Object.keys(rulesMap).forEach(k=>{if(!rulesMap[k].length)delete rulesMap[k]});
+      out.appendChild(barList('ਨਿਯਮ ਮੰਨਣ ਨਾਲ ਫ਼ਰਕ',rulesMap));
+      out.appendChild(barList('ਕਿਹੜੀ ਕਿਸਮ ਵਿੱਚ ਪੈਸਾ ਬਣਦਾ ਜਾਂ ਜਾਂਦਾ',group(list,'kind')));
+      out.appendChild(barList('ਮਨ ਦੀ ਹਾਲਤ ਮੁਤਾਬਕ',group(list,'mood')));
+      if(Math.abs(avgL)>avgW&&wins.length&&losses.length){
+        const n=document.createElement('div');n.className='note';
+        n.textContent='ਤੁਹਾਡੀ ਔਸਤ ਹਾਰ ਔਸਤ ਜਿੱਤ ਤੋਂ ਵੱਡੀ ਹੈ। ਇਸ ਦਾ ਮਤਲਬ ਅਕਸਰ ਇਹ ਹੁੰਦਾ ਹੈ ਕਿ ਨੁਕਸਾਨ ਵਾਲਾ ਟਰੇਡ ਦੇਰ ਤੱਕ ਫੜੀ ਰੱਖਿਆ ਜਾਂਦਾ ਹੈ ਅਤੇ ਫ਼ਾਇਦੇ ਵਾਲਾ ਜਲਦੀ ਬੰਦ ਕਰ ਦਿੱਤਾ ਜਾਂਦਾ ਹੈ।';
+        out.appendChild(n);
+      }
+    }
+    // Challenge
+    const paper=S.trades.filter(t=>t.mode==='paper'); const goal=50;
+    const days=new Set(paper.map(t=>t.date)).size;
+    const followed=paper.filter(t=>t.rules==='yes'); const fSum=followed.reduce((a,t)=>a+t.pnl,0);
+    const ch=$('challenge');ch.innerHTML='';
+    const p1=document.createElement('div');p1.textContent=`ਪੇਪਰ ਟਰੇਡ: ${paper.length} / ${goal}, ${days} ਦਿਨਾਂ ਵਿੱਚ`;
+    const pr=document.createElement('div');pr.className='progress';const fill=document.createElement('div');
+    fill.style.width=Math.min(100,paper.length/goal*100)+'%';pr.appendChild(fill);
+    const p2=document.createElement('div');p2.className='num';
+    p2.innerHTML=`ਨਿਯਮ ਮੰਨ ਕੇ ਕੀਤੇ ਪੇਪਰ ਟਰੇਡਾਂ ਦਾ ਨਤੀਜਾ: <b class="${fSum>=0?'good':'bad'}">${inr(fSum)}</b>`;
+    const p3=document.createElement('p');p3.className='lead';p3.style.margin='10px 0 0';
+    p3.textContent=paper.length>=goal&&fSum>0?'ਚੁਣੌਤੀ ਪੂਰੀ ਹੈ ਅਤੇ ਨਤੀਜਾ ਫ਼ਾਇਦੇ ਵਿੱਚ ਹੈ। ਫਿਰ ਵੀ ਅਸਲ ਪੈਸਾ ਛੋਟੇ ਤੋਂ ਸ਼ੁਰੂ ਕਰੋ, ਕਿਉਂਕਿ ਅਸਲ ਪੈਸੇ ਨਾਲ ਮਨ ਵੱਖਰਾ ਚੱਲਦਾ ਹੈ।'
+      :'ਸੁਝਾਅ: ਘੱਟੋ-ਘੱਟ 50 ਪੇਪਰ ਟਰੇਡ ਕਰੋ। ਜਦੋਂ ਤੱਕ ਨਿਯਮ ਮੰਨ ਕੇ ਕੀਤੇ ਟਰੇਡ ਫ਼ਾਇਦੇ ਵਿੱਚ ਨਾ ਹੋਣ, ਅਸਲ ਪੈਸਾ ਨਾ ਲਾਓ।';
+    ch.append(p1,pr,p2,p3);
+  }
+
+  /* ---------- Backup ---------- */
+  $('copyBackup').addEventListener('click',async()=>{
+    const txt=JSON.stringify(S);let ok=false;
+    try{await navigator.clipboard.writeText(txt);ok=true}catch(e){$('restoreTxt').value=txt;$('restoreTxt').select();try{ok=document.execCommand('copy')}catch(e2){}}
+    $('backupMsg').textContent=ok?'ਬੈਕਅੱਪ ਕਾਪੀ ਹੋ ਗਿਆ। ਹੁਣ ਆਪਣੇ ਆਪ ਨੂੰ WhatsApp ਉੱਤੇ ਪੇਸਟ ਕਰਕੇ ਭੇਜ ਦਿਓ।':'ਥੱਲੇ ਡੱਬੇ ਵਿੱਚ ਬੈਕਅੱਪ ਪਾ ਦਿੱਤਾ ਹੈ, ਹੱਥ ਨਾਲ ਕਾਪੀ ਕਰ ਲਓ।';
+  });
+  $('restore').addEventListener('click',()=>{
+    try{const p=JSON.parse($('restoreTxt').value);if(!p||!p.settings||!Array.isArray(p.trades))throw 0;
+      if(!confirm('ਹੁਣ ਵਾਲਾ ਡਾਟਾ ਬੈਕਅੱਪ ਨਾਲ ਬਦਲ ਜਾਵੇਗਾ। ਅੱਗੇ ਵਧੀਏ?'))return;
+      S=p;persist();['cap','riskPct','dayPct'].forEach(k=>$(k).value=S.settings[k]);
+      calc();renderList();renderStatus();$('restoreTxt').value='';$('backupMsg').textContent='ਬੈਕਅੱਪ ਵਾਪਸ ਆ ਗਿਆ।';
+    }catch(e){$('backupMsg').textContent='ਇਹ ਬੈਕਅੱਪ ਪੜ੍ਹਿਆ ਨਹੀਂ ਗਿਆ। ਪੂਰਾ ਟੈਕਸਟ ਬਿਨਾਂ ਕੱਟੇ ਪੇਸਟ ਕਰੋ।'}
+  });
+
+  calc();renderList();renderStatus();
+})();
+</script>
+</body>
+</html>
