@@ -47,6 +47,14 @@ button,input,select,textarea{font:inherit;color:inherit}
 .lockmsg{margin-top:10px;background:var(--gold);color:#1F1A17;border-radius:6px;padding:8px 10px;font-weight:700}
 .lockmsg[hidden]{display:none}
 
+/* Streak */
+.streak{margin-top:10px;display:flex;align-items:center;gap:12px;background:rgba(0,0,0,.18);border-radius:6px;padding:8px 12px}
+.streak .fire{font-size:30px;line-height:1;flex:none}
+.streak.zero .fire{filter:grayscale(1);opacity:.6}
+.streak small{display:block;opacity:.85;font-size:13px}
+.streak b{font-size:22px}
+.streak .best{font-size:14px;opacity:.85;margin-left:6px}
+
 /* Tabs */
 .tabs{position:sticky;top:0;z-index:5;background:var(--paper);border-bottom:1px solid var(--line);padding-top:env(safe-area-inset-top,0px)}
 .tabs .wrap{display:grid;grid-template-columns:repeat(4,1fr)}
@@ -76,6 +84,7 @@ h3{font-size:19px;font-weight:600;margin:22px 0 8px}
 .btn{border:0;background:var(--cover);color:#fff;border-radius:8px;padding:10px 16px;font-weight:700;cursor:pointer;width:100%;margin-top:10px}
 .btn:disabled{opacity:.4;cursor:not-allowed}
 .btn.ghost{background:transparent;color:var(--ink);border:1.5px solid var(--ink)}
+.btn[hidden]{display:none}
 .verdict{margin-top:12px;border-top:2px dashed var(--line);padding-top:12px}
 .verdict .big{font-family:"Baloo Paaji 2",sans-serif;font-size:30px;font-weight:800}
 .good{color:var(--gain)} .bad{color:var(--loss)}
@@ -113,6 +122,27 @@ h3{font-size:19px;font-weight:600;margin:22px 0 8px}
 .note{background:var(--card);border-left:4px solid var(--gold);padding:10px 14px;margin:14px 0;border-radius:0 8px 8px 0}
 .plain{margin:0;padding-left:1.2em}.plain li{margin:6px 0}
 textarea.backup{min-height:90px;font-size:13px;font-family:ui-monospace,monospace}
+
+/* Daily message */
+.daily{position:fixed;inset:0;z-index:20;background:rgba(20,10,8,.62);display:flex;align-items:center;justify-content:center;
+  padding:calc(20px + env(safe-area-inset-top,0px)) 20px calc(20px + env(safe-area-inset-bottom,0px))}
+.daily[hidden]{display:none}
+.dcard{background:#9E2230;color:#FFF4E8;border-radius:12px;max-width:420px;width:100%;padding:26px 24px 22px;
+  outline:2px dashed #E0AE1A;outline-offset:-10px;box-shadow:0 18px 50px rgba(0,0,0,.35)}
+.dcard small{display:block;opacity:.85;font-size:14px}
+.dcard .dp{margin:12px 0 0;font-weight:700;font-size:17px}
+.dcard .dq{font-family:"Baloo Paaji 2","Mukta Mahee",sans-serif;font-size:27px;font-weight:800;line-height:1.3;margin:16px 0 4px}
+.dcard .btn{background:#E0AE1A;color:#1F1A17;margin-top:18px}
+.dcard .dintro{margin:10px 0 0;font-size:16px;opacity:.95}
+.dfield{display:grid;gap:4px;margin:14px 0 0;font-weight:600}
+.dfield input{border:0;border-radius:8px;padding:10px 12px;background:#FFF4E8;color:#1F1A17;width:100%;font-size:18px}
+@media (prefers-reduced-motion:no-preference){.dcard{animation:dpop .35s ease-out}}
+@keyframes dpop{from{opacity:0;transform:translateY(10px) scale(.97)}}
+
+/* Weekly card */
+.cardPrev{display:block;width:100%;max-width:260px;margin:14px auto 0;border-radius:10px;border:1px solid var(--line)}
+.cardPrev[hidden]{display:none}
+
 footer{color:var(--muted);font-size:14px;text-align:center;padding:0 16px 28px}
 footer p{margin:6px 0}
 footer .credit{color:var(--ink);font-size:15.5px;border-top:1px solid var(--line);padding-top:16px;max-width:680px;margin:0 auto 10px}
@@ -130,6 +160,10 @@ footer a{color:var(--cover);font-weight:700}
     <div class="today">
       <div><small>ਅੱਜ ਦਾ ਅਸਲ ਨਤੀਜਾ</small><b class="num" id="todayPnl">₹0</b></div>
       <div><small>ਅੱਜ ਨੁਕਸਾਨ ਦੀ ਹੱਦ ਬਾਕੀ</small><b class="num" id="todayLeft">₹0</b></div>
+    </div>
+    <div class="streak zero" id="streakBox">
+      <span class="fire" aria-hidden="true">🔥</span>
+      <div><small>ਸਬਰ ਸਟ੍ਰੀਕ: ਲਗਾਤਾਰ ਨਿਯਮ ਵਾਲੇ ਦਿਨ</small><b class="num" id="streakNow">0 ਦਿਨ</b><span class="best num" id="streakBest"></span></div>
     </div>
     <div class="lockmsg" id="lockMsg" hidden></div>
   </div>
@@ -228,6 +262,15 @@ footer a{color:var(--cover);font-weight:700}
 
   <h3>ਪੇਪਰ ਟਰੇਡਿੰਗ ਦੀ ਚੁਣੌਤੀ</h3>
   <div class="box" id="challenge"></div>
+
+  <h3>ਹਫ਼ਤੇ ਦਾ ਕਾਰਡ</h3>
+  <div class="box">
+    <p class="lead" style="margin-top:0">ਪਿਛਲੇ 7 ਦਿਨਾਂ ਦਾ ਸਬਰ ਇੱਕ ਤਸਵੀਰ ਵਿੱਚ। ਇਸ ਵਿੱਚ ਪੈਸੇ ਦੀ ਰਕਮ ਨਹੀਂ ਦਿਖਦੀ, ਸਿਰਫ਼ ਨਿਯਮ ਅਤੇ ਸਟ੍ਰੀਕ। Instagram ਸਟੋਰੀ ਜਾਂ WhatsApp ਉੱਤੇ ਸਾਂਝਾ ਕਰੋ।</p>
+    <button class="btn" id="makeCard" style="margin-top:0">ਕਾਰਡ ਬਣਾਓ</button>
+    <img class="cardPrev" id="cardPrev" alt="ਹਫ਼ਤੇ ਦਾ ਕਾਰਡ" hidden>
+    <button class="btn ghost" id="shareCard" hidden>ਕਾਰਡ ਸਾਂਝਾ ਕਰੋ</button>
+    <small class="lead" id="cardMsg" aria-live="polite"></small>
+  </div>
 </section>
 
 <!-- FACTS -->
@@ -243,12 +286,26 @@ footer a{color:var(--cover);font-weight:700}
   </ul>
   <div class="note">ਇਸ ਬਹੀ ਦਾ ਮਕਸਦ ਇਹੀ ਹੈ ਕਿ ਤੁਸੀਂ ਉਸ ਆਖ਼ਰੀ ਗਿਣਤੀ ਵਿੱਚ ਨਾ ਆਓ। ਪਹਿਲਾਂ ਪੇਪਰ ਉੱਤੇ ਸਾਬਤ ਕਰੋ, ਫਿਰ ਪੈਸਾ ਲਗਾਓ।</div>
 
+  <h3>ਸਬਰ ਸਟ੍ਰੀਕ ਕਿਵੇਂ ਗਿਣੀ ਜਾਂਦੀ ਹੈ</h3>
+  <ul class="plain">
+    <li>ਜਿਸ ਦਿਨ ਤੁਸੀਂ ਟਰੇਡ ਲਿਖਿਆ ਅਤੇ ਸਾਰੇ ਟਰੇਡਾਂ ਵਿੱਚ ਨਿਯਮ ਮੰਨੇ, ਉਹ ਦਿਨ ਸਟ੍ਰੀਕ ਵਿੱਚ ਜੁੜਦਾ ਹੈ।</li>
+    <li>ਇੱਕ ਵੀ ਟਰੇਡ ਵਿੱਚ ਨਿਯਮ ਟੁੱਟਿਆ, ਜਾਂ ਅਸਲ ਪੈਸੇ ਦਾ ਨੁਕਸਾਨ ਦਿਨ ਦੀ ਹੱਦ ਤੋਂ ਵੱਧ ਗਿਆ, ਤਾਂ ਸਟ੍ਰੀਕ ਸਿਫ਼ਰ ਤੋਂ ਸ਼ੁਰੂ।</li>
+    <li>ਜਿਸ ਦਿਨ ਟਰੇਡ ਨਹੀਂ ਕੀਤਾ, ਉਸ ਦਿਨ ਸਟ੍ਰੀਕ ਨਹੀਂ ਟੁੱਟਦੀ। ਟਰੇਡ ਨਾ ਕਰਨਾ ਵੀ ਸਬਰ ਹੈ।</li>
+  </ul>
+
   <h3>ਕਾਨੂੰਨ ਦੀ ਹੱਦ</h3>
   <ul class="plain">
     <li>SEBI ਦੀ ਰਜਿਸਟ੍ਰੇਸ਼ਨ ਤੋਂ ਬਿਨਾਂ ਕਿਸੇ ਨੂੰ ਖ਼ਰੀਦੋ/ਵੇਚੋ ਦੀ ਟਿਪ ਜਾਂ ਕਾਲ ਦੇਣਾ ਮਨ੍ਹਾ ਹੈ, ਭਾਵੇਂ ਮੁਫ਼ਤ ਹੋਵੇ ਜਾਂ ਪੈਸੇ ਲੈ ਕੇ।</li>
     <li>ਆਮ ਸਿੱਖਿਆ ਦੇਣੀ ਠੀਕ ਹੈ, ਪਰ ਉਸ ਵਿੱਚ ਕਿਸੇ ਖ਼ਾਸ ਸ਼ੇਅਰ ਦਾ ਇਸ਼ਾਰਾ, ਲਾਈਵ ਕੀਮਤਾਂ ਜਾਂ ਪੱਕੇ ਮੁਨਾਫ਼ੇ ਦੇ ਦਾਅਵੇ ਨਹੀਂ ਹੋਣੇ ਚਾਹੀਦੇ।</li>
     <li>ਇਹ ਬਹੀ ਕੋਈ ਟਿਪ ਨਹੀਂ ਦਿੰਦੀ, ਸਿਰਫ਼ ਤੁਹਾਡਾ ਆਪਣਾ ਹਿਸਾਬ ਰੱਖਦੀ ਹੈ।</li>
   </ul>
+
+  <h3>ਤੁਹਾਡੀ ਜਾਣਕਾਰੀ</h3>
+  <div class="box">
+    <label class="field"><span>ਨਾਂ</span><input id="eName" maxlength="30" style="text-align:left"></label>
+    <label class="field"><span>ਉਮਰ</span><input class="num" id="eAge" type="number" inputmode="numeric" min="10" max="100"></label>
+    <small class="lead">ਇਹ ਸਿਰਫ਼ ਇਸ ਫ਼ੋਨ ਵਿੱਚ ਹੈ, ਕਿਸੇ ਕੋਲ ਨਹੀਂ ਜਾਂਦਾ।</small>
+  </div>
 
   <h3>ਬੈਕਅੱਪ</h3>
   <p class="lead" style="margin-top:0">ਸਾਰਾ ਡਾਟਾ ਸਿਰਫ਼ ਇਸ ਫ਼ੋਨ ਦੇ ਬ੍ਰਾਊਜ਼ਰ ਵਿੱਚ ਹੈ, ਕਿਸੇ ਹੋਰ ਕੋਲ ਨਹੀਂ ਜਾਂਦਾ। ਬ੍ਰਾਊਜ਼ਰ ਸਾਫ਼ ਕਰਨ ਨਾਲ ਮਿਟ ਸਕਦਾ ਹੈ, ਇਸ ਲਈ ਕਦੇ-ਕਦੇ ਬੈਕਅੱਪ ਕਾਪੀ ਕਰਕੇ ਆਪਣੇ ਆਪ ਨੂੰ WhatsApp ਕਰ ਦਿਓ।</p>
@@ -269,17 +326,40 @@ footer a{color:var(--cover);font-weight:700}
   <p>© 2026 ਸਬਰ</p>
 </footer>
 
+<div class="daily" id="daily" role="dialog" aria-modal="true" aria-labelledby="dQuote" hidden>
+  <div class="dcard">
+    <div id="dWelcome" hidden>
+      <p class="dq" style="margin-top:0">ਜੀ ਆਇਆਂ ਨੂੰ ਬਹੀ ਵਿੱਚ 🙏</p>
+      <p class="dintro">ਬੱਸ ਦੋ ਗੱਲਾਂ ਦੱਸੋ, ਤਾਂ ਕਿ ਬਹੀ ਤੁਹਾਡੇ ਨਾਂ ਨਾਲ ਗੱਲ ਕਰੇ। ਇਹ ਸਿਰਫ਼ ਤੁਹਾਡੇ ਫ਼ੋਨ ਵਿੱਚ ਰਹੇਗਾ, ਕਿਸੇ ਕੋਲ ਨਹੀਂ ਜਾਵੇਗਾ।</p>
+      <label class="dfield"><span>ਤੁਹਾਡਾ ਨਾਂ</span><input id="pName" maxlength="30" autocomplete="given-name"></label>
+      <label class="dfield"><span>ਤੁਹਾਡੀ ਉਮਰ</span><input id="pAge" class="num" type="number" inputmode="numeric" min="10" max="100"></label>
+      <button class="btn" id="pSave" disabled>ਸ਼ੁਰੂ ਕਰੀਏ</button>
+    </div>
+    <div id="dMsg">
+      <small id="dHello">ਅੱਜ ਦੀ ਗੱਲ</small>
+      <p class="dp" id="dPersonal"></p>
+      <p class="dq" id="dQuote"></p>
+      <button class="btn" id="dClose">ਠੀਕ ਹੈ, ਚੱਲੀਏ</button>
+    </div>
+  </div>
+</div>
+
 <script>
 (function(){
   const $=id=>document.getElementById(id);
   const KEY='bahi-v1';
+  const SITE='sabar-mansa.github.io/bahi';
+  const HANDLE='@sabarmansa7';
   const inr=n=>(n<0?'-':'')+'₹'+Math.round(Math.abs(n)).toLocaleString('en-IN');
-  const todayStr=()=>{const d=new Date();return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0')};
+  const ymd=d=>d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');
+  const todayStr=()=>ymd(new Date());
 
   /* ---------- State ---------- */
   let S={settings:{cap:10000,riskPct:2,dayPct:5},trades:[]};
   try{const raw=localStorage.getItem(KEY);if(raw){const p=JSON.parse(raw);if(p&&p.settings&&Array.isArray(p.trades))S=p}}catch(e){}
+  if(!S.profile)S.profile={};
   const persist=()=>{try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}};
+  const isMinor=()=>{const a=parseInt(S.profile.age,10);return a>0&&a<18};
 
   /* ---------- Tabs ---------- */
   const tabs=[...document.querySelectorAll('.tab')];
@@ -324,11 +404,37 @@ footer a{color:var(--cover);font-weight:700}
     $('todayLeft').textContent=s.dayLimit>0?inr(s.left):'ਹੱਦ ਨਹੀਂ ਰੱਖੀ';
     $('lockMsg').hidden=!s.lock; $('lockMsg').textContent=s.lock||'';
     const realBtn=$('modeSeg').querySelector('[data-v="real"]');
-    realBtn.disabled=!!s.lock;
-    if(s.lock&&modeSeg.get()==='real')modeSeg.set('paper');
-    $('modeWarn').hidden=!s.lock; $('modeWarn').textContent=s.lock?'ਅਸਲ ਪੈਸੇ ਵਾਲਾ ਬਟਨ ਹੁਣ ਬੰਦ ਹੈ। ਪੇਪਰ ਟਰੇਡ ਲਿਖ ਸਕਦੇ ਹੋ।':'';
+    const minor=isMinor();
+    realBtn.disabled=!!s.lock||minor;
+    if((s.lock||minor)&&modeSeg.get()==='real')modeSeg.set('paper');
+    const warn=s.lock?'ਅਸਲ ਪੈਸੇ ਵਾਲਾ ਬਟਨ ਹੁਣ ਬੰਦ ਹੈ। ਪੇਪਰ ਟਰੇਡ ਲਿਖ ਸਕਦੇ ਹੋ।'
+      :minor?'ਅਸਲ ਪੈਸੇ ਵਾਲੇ ਟਰੇਡ 18 ਸਾਲ ਤੋਂ ਬਾਅਦ। ਹੁਣ ਪੇਪਰ ਉੱਤੇ ਹੱਥ ਪੱਕਾ ਕਰੋ, ਇਹੀ ਸਭ ਤੋਂ ਵਧੀਆ ਤਿਆਰੀ ਹੈ।':'';
+    $('modeWarn').hidden=!warn; $('modeWarn').textContent=warn;
+    renderStreak();
   }
   setInterval(renderStatus,30000);
+
+  /* ---------- Streak ---------- */
+  // A day with trades counts if every trade followed the rules and the real-money
+  // loss stayed within the daily limit. Days without trades are skipped, not broken.
+  function dayBroken(list){
+    if(list.some(t=>t.rules==='no'))return true;
+    const cap=S.settings.cap||0, dayLimit=cap*(S.settings.dayPct||0)/100;
+    const real=list.filter(t=>t.mode==='real').reduce((a,t)=>a+t.pnl,0);
+    return dayLimit>0&&real<-dayLimit;
+  }
+  function streaks(){
+    const g=group(S.trades,'date'); const dates=Object.keys(g).filter(d=>d<=todayStr()).sort();
+    let cur=0,best=0;
+    dates.forEach(d=>{if(dayBroken(g[d]))cur=0;else{cur++;if(cur>best)best=cur}});
+    return{cur,best};
+  }
+  function renderStreak(){
+    const s=streaks();
+    $('streakNow').textContent=s.cur+' ਦਿਨ';
+    $('streakBest').textContent=s.best>s.cur?`ਸਭ ਤੋਂ ਵੱਧ: ${s.best}`:'';
+    $('streakBox').classList.toggle('zero',s.cur===0);
+  }
 
   /* ---------- Calculator ---------- */
   ['cap','riskPct','dayPct'].forEach(k=>{$(k).value=S.settings[k];
@@ -367,7 +473,7 @@ footer a{color:var(--cover);font-weight:700}
     const pnlRaw=$('fPnl').value.trim(); const msg=$('saveMsg');
     if(pnlRaw===''||isNaN(parseFloat(pnlRaw))){msg.textContent='ਨਤੀਜਾ ₹ ਵਿੱਚ ਭਰੋ। ਨੁਕਸਾਨ ਹੈ ਤਾਂ ਅੱਗੇ ਮਾਈਨਸ ਲਾਓ।';return}
     const mode=modeSeg.get();
-    if(mode==='real'&&status().lock){msg.textContent='ਅਸਲ ਪੈਸੇ ਵਾਲਾ ਟਰੇਡ ਹੁਣ ਬੰਦ ਹੈ।';return}
+    if(mode==='real'&&(status().lock||isMinor())){msg.textContent='ਅਸਲ ਪੈਸੇ ਵਾਲਾ ਟਰੇਡ ਹੁਣ ਬੰਦ ਹੈ।';return}
     S.trades.push({id:Date.now().toString(36),date:$('fDate').value||todayStr(),kind:$('fKind').value,mode,
       what:$('fWhat').value.trim(),why:$('fWhy').value.trim(),pnl:parseFloat(pnlRaw),rules:rulesSeg.get(),mood:$('fMood').value,ts:Date.now()});
     persist();
@@ -459,6 +565,84 @@ footer a{color:var(--cover);font-weight:700}
     ch.append(p1,pr,p2,p3);
   }
 
+  /* ---------- Weekly share card ---------- */
+  let cardFile=null, cardUrl=null;
+  function weekData(){
+    const now=new Date(); const from=new Date(now.getFullYear(),now.getMonth(),now.getDate()-6);
+    const a=ymd(from), b=ymd(now);
+    const list=S.trades.filter(t=>t.date>=a&&t.date<=b);
+    const paper=list.filter(t=>t.mode==='paper').length;
+    return{n:list.length,followed:list.filter(t=>t.rules==='yes').length,calm:list.filter(t=>t.mood==='ਸ਼ਾਂਤ').length,
+      paper,real:list.length-paper,from,now};
+  }
+  const dm=d=>String(d.getDate()).padStart(2,'0')+'/'+String(d.getMonth()+1).padStart(2,'0');
+  function rrect(ctx,x,y,w,h,r){ctx.beginPath();if(ctx.roundRect)ctx.roundRect(x,y,w,h,r);else ctx.rect(x,y,w,h)}
+  async function drawCard(){
+    const w=weekData();
+    if(!w.n)return null;
+    const sample='ਬਹੀ ਸਬਰ ਹਫ਼ਤੇ ਨਿਯਮ ਸ਼ਾਂਤ 0123456789/';
+    try{await Promise.all([
+      document.fonts.load('800 200px "Baloo Paaji 2"',sample),
+      document.fonts.load('600 56px "Mukta Mahee"',sample),
+      document.fonts.load('700 56px "Mukta Mahee"',sample)])}catch(e){}
+    const W=1080,H=1920,c=document.createElement('canvas');c.width=W;c.height=H;
+    const x=c.getContext('2d');
+    const RED='#9E2230',CREAM='#FFF4E8',GOLD='#E0AE1A',TILE='rgba(0,0,0,.2)';
+    const baloo=(s,wt)=>`${wt||800} ${s}px "Baloo Paaji 2","Mukta Mahee",sans-serif`;
+    const mukta=(s,wt)=>`${wt||600} ${s}px "Mukta Mahee","Noto Sans Gurmukhi",sans-serif`;
+    x.fillStyle=RED;x.fillRect(0,0,W,H);
+    x.strokeStyle=GOLD;x.lineWidth=8;x.setLineDash([30,18]);rrect(x,60,60,W-120,H-120,18);x.stroke();x.setLineDash([]);
+    x.textBaseline='alphabetic';x.textAlign='left';x.fillStyle=CREAM;
+    x.font=baloo(230);x.fillText('ਬਹੀ',130,390);
+    x.font=mukta(58);x.fillText('ਇਸ ਹਫ਼ਤੇ ਦਾ ਹਿਸਾਬ',135,490);
+    x.globalAlpha=.8;x.font=mukta(44,400);x.fillText(`${dm(w.from)} ਤੋਂ ${dm(w.now)}`,135,560);x.globalAlpha=1;
+    // Streak
+    const st=streaks().cur;
+    rrect(x,130,630,W-260,300,16);x.fillStyle=TILE;x.fill();
+    x.fillStyle=CREAM;x.font='150px sans-serif';x.fillText(st>0?'🔥':'🌱',175,830);
+    x.font=baloo(190);x.fillText(String(st),380,850);
+    const numW=x.measureText(String(st)).width;
+    x.font=mukta(52);x.fillText('ਦਿਨ ਲਗਾਤਾਰ',400+numW,770);
+    x.fillStyle=GOLD;x.font=mukta(52,700);x.fillText('ਸਬਰ ਸਟ੍ਰੀਕ',400+numW,845);
+    // Stat rows
+    const rows=[['ਨਿਯਮ ਮੰਨੇ',`${w.followed}/${w.n}`],['ਸ਼ਾਂਤ ਮਨ ਨਾਲ ਟਰੇਡ',`${w.calm}/${w.n}`],['ਪੇਪਰ / ਅਸਲ ਟਰੇਡ',`${w.paper} / ${w.real}`]];
+    rows.forEach(([k,v],i)=>{
+      const y=980+i*190;
+      rrect(x,130,y,W-260,160,16);x.fillStyle=TILE;x.fill();
+      x.fillStyle=CREAM;x.textAlign='left';x.font=mukta(50);x.fillText(k,175,y+98);
+      x.textAlign='right';x.font=baloo(92);x.fillText(v,W-175,y+112);
+    });
+    // Message
+    const pct=w.followed/w.n;
+    const msg=pct===1?'ਪੂਰਾ ਸਬਰ ਰੱਖਿਆ 💪':pct>=.7?'ਵਧੀਆ ਹਫ਼ਤਾ, ਸਬਰ ਬਣਿਆ ਰਿਹਾ':'ਅਗਲੇ ਹਫ਼ਤੇ ਹੋਰ ਸਬਰ';
+    x.textAlign='center';x.fillStyle=GOLD;x.font=baloo(70);x.fillText(msg,W/2,1640);
+    // Footer
+    x.fillStyle=CREAM;x.globalAlpha=.9;x.font=mukta(42);x.fillText(SITE,W/2,1750);
+    x.globalAlpha=.75;x.font=mukta(40,400);x.fillText(HANDLE,W/2,1805);x.globalAlpha=1;
+    return new Promise(res=>c.toBlob(b=>res(b),'image/png'));
+  }
+  $('makeCard').addEventListener('click',async()=>{
+    const msg=$('cardMsg');msg.textContent='ਕਾਰਡ ਬਣ ਰਿਹਾ ਹੈ...';
+    const blob=await drawCard();
+    if(!blob){msg.textContent='ਪਿਛਲੇ 7 ਦਿਨਾਂ ਵਿੱਚ ਕੋਈ ਟਰੇਡ ਨਹੀਂ ਲਿਖਿਆ। ਪਹਿਲਾਂ ਬਹੀ ਵਿੱਚ ਟਰੇਡ ਲਿਖੋ, ਪੇਪਰ ਵਾਲਾ ਵੀ ਚੱਲੇਗਾ।';
+      $('cardPrev').hidden=true;$('shareCard').hidden=true;return}
+    if(cardUrl)URL.revokeObjectURL(cardUrl);
+    cardUrl=URL.createObjectURL(blob);
+    cardFile=new File([blob],'bahi-hafta.png',{type:'image/png'});
+    $('cardPrev').src=cardUrl;$('cardPrev').hidden=false;$('shareCard').hidden=false;
+    msg.textContent='ਕਾਰਡ ਤਿਆਰ ਹੈ।';
+  });
+  $('shareCard').addEventListener('click',async()=>{
+    const msg=$('cardMsg');if(!cardFile)return;
+    if(navigator.canShare&&navigator.canShare({files:[cardFile]})){
+      try{await navigator.share({files:[cardFile],text:'ਮੇਰਾ ਹਫ਼ਤੇ ਦਾ ਸਬਰ, ਬਹੀ ਨਾਲ: https://'+SITE+'/'});msg.textContent='ਕਾਰਡ ਸਾਂਝਾ ਹੋ ਗਿਆ।'}
+      catch(e){if(e&&e.name!=='AbortError')msg.textContent='ਸਾਂਝਾ ਨਹੀਂ ਹੋਇਆ। ਤਸਵੀਰ ਨੂੰ ਲੰਮਾ ਦਬਾ ਕੇ ਸੇਵ ਕਰੋ।'}
+    }else{
+      const a=document.createElement('a');a.href=cardUrl;a.download='bahi-hafta.png';document.body.appendChild(a);a.click();a.remove();
+      msg.textContent='ਤਸਵੀਰ ਡਾਊਨਲੋਡ ਹੋ ਗਈ। ਗੈਲਰੀ ਵਿੱਚੋਂ Instagram ਜਾਂ WhatsApp ਉੱਤੇ ਪਾਓ।';
+    }
+  });
+
   /* ---------- Backup ---------- */
   $('copyBackup').addEventListener('click',async()=>{
     const txt=JSON.stringify(S);let ok=false;
@@ -468,12 +652,110 @@ footer a{color:var(--cover);font-weight:700}
   $('restore').addEventListener('click',()=>{
     try{const p=JSON.parse($('restoreTxt').value);if(!p||!p.settings||!Array.isArray(p.trades))throw 0;
       if(!confirm('ਹੁਣ ਵਾਲਾ ਡਾਟਾ ਬੈਕਅੱਪ ਨਾਲ ਬਦਲ ਜਾਵੇਗਾ। ਅੱਗੇ ਵਧੀਏ?'))return;
-      S=p;persist();['cap','riskPct','dayPct'].forEach(k=>$(k).value=S.settings[k]);
+      S=p;if(!S.profile)S.profile={};persist();['cap','riskPct','dayPct'].forEach(k=>$(k).value=S.settings[k]);
+      $('eName').value=S.profile.name||'';$('eAge').value=S.profile.age||'';
       calc();renderList();renderStatus();$('restoreTxt').value='';$('backupMsg').textContent='ਬੈਕਅੱਪ ਵਾਪਸ ਆ ਗਿਆ।';
     }catch(e){$('backupMsg').textContent='ਇਹ ਬੈਕਅੱਪ ਪੜ੍ਹਿਆ ਨਹੀਂ ਗਿਆ। ਪੂਰਾ ਟੈਕਸਟ ਬਿਨਾਂ ਕੱਟੇ ਪੇਸਟ ਕਰੋ।'}
   });
 
-  calc();renderList();renderStatus();
+  /* ---------- Daily message (once a day, always encouraging) ---------- */
+  const QUOTES=[
+    'ਜਿਹੜਾ ਟਰੇਡ ਨਹੀਂ ਕੀਤਾ, ਉਹਦਾ ਨੁਕਸਾਨ ਵੀ ਨਹੀਂ ਹੋਇਆ।',
+    'ਮਾਰਕੀਟ ਰੋਜ਼ ਖੁੱਲ੍ਹਦੀ ਹੈ, ਪੂੰਜੀ ਇੱਕ ਵਾਰ ਜਾਂਦੀ ਹੈ।',
+    'ਸਟਾਪਲੌਸ ਹਾਰ ਨਹੀਂ, ਬੀਮਾ ਹੈ।',
+    'ਛੋਟਾ ਨੁਕਸਾਨ ਮੰਨ ਲੈਣਾ ਵੱਡੇ ਨੁਕਸਾਨ ਤੋਂ ਬਚਾਉਂਦਾ ਹੈ।',
+    'ਕਾਹਲੀ ਅੱਗੇ ਟੋਏ, ਸਬਰ ਅੱਗੇ ਰਾਹ।',
+    'ਬਦਲੇ ਦਾ ਟਰੇਡ ਬਦਲਾ ਨਹੀਂ ਲੈਂਦਾ, ਹੋਰ ਲੈ ਜਾਂਦਾ ਹੈ।',
+    'ਅੱਜ ਦਾ ਕੰਮ: ਘੱਟ ਟਰੇਡ, ਪੂਰਾ ਹਿਸਾਬ।',
+    'ਜਿੱਤ ਤੋਂ ਬਾਅਦ ਵੀ ਓਨਾ ਹੀ ਸਬਰ ਚਾਹੀਦਾ, ਜਿੰਨਾ ਹਾਰ ਤੋਂ ਬਾਅਦ।',
+    'ਟਿਪ ਦੇਣ ਵਾਲਾ ਆਪਣਾ ਪੈਸਾ ਨਹੀਂ ਲਾਉਂਦਾ, ਤੁਹਾਡਾ ਲਵਾਉਂਦਾ ਹੈ।',
+    'ਪਹਿਲਾਂ ਪੇਪਰ ਉੱਤੇ ਜਿੱਤੋ, ਫਿਰ ਪੈਸਾ ਲਾਓ।',
+    'ਹਰ ਰੋਜ਼ ਟਰੇਡ ਕਰਨਾ ਜ਼ਰੂਰੀ ਨਹੀਂ, ਹਰ ਰੋਜ਼ ਸਿੱਖਣਾ ਜ਼ਰੂਰੀ ਹੈ।',
+    'ਬਹੀ ਝੂਠ ਨਹੀਂ ਬੋਲਦੀ, ਮਨ ਬੋਲ ਲੈਂਦਾ ਹੈ।',
+    'ਮੌਕੇ ਮੁੜ-ਮੁੜ ਆਉਂਦੇ ਹਨ, ਗੁਆਚੀ ਪੂੰਜੀ ਨਹੀਂ।',
+    'ਲਾਲਚ ਟਾਰਗੇਟ ਹਿਲਾਉਂਦਾ ਹੈ, ਡਰ ਸਟਾਪਲੌਸ। ਦੋਵਾਂ ਨੂੰ ਨਾ ਹਿੱਲਣ ਦਿਓ।',
+    'ਦੋ ਘਾਟੇ ਲਗਾਤਾਰ? ਸਕਰੀਨ ਬੰਦ ਕਰੋ, ਚਾਹ ਪੀਓ।',
+    'ਜਿਹੜਾ ਲਿਖਦਾ ਹੈ, ਉਹ ਸੁਧਰਦਾ ਹੈ।',
+    'ਮਾਰਕੀਟ ਨੂੰ ਤੁਹਾਡੀ ਕਾਹਲੀ ਨਾਲ ਕੋਈ ਮਤਲਬ ਨਹੀਂ।',
+    'ਬੀਜ ਤੋਂ ਫ਼ਸਲ ਤੱਕ ਸਮਾਂ ਲੱਗਦਾ ਹੈ। ਟਰੇਡਿੰਗ ਵੀ ਖੇਤੀ ਵਰਗੀ ਹੈ।',
+    'ਅੱਜ ਇੱਕ ਨਿਯਮ ਪੱਕਾ ਕਰੋ, ਬੱਸ ਇੱਕ।',
+    'ਵੱਡਾ ਲੌਟ ਵੱਡਾ ਦਿਲ ਨਹੀਂ, ਵੱਡਾ ਖ਼ਤਰਾ ਹੈ।',
+    'ਨੁਕਸਾਨ ਲਿਖਣ ਵਿੱਚ ਸ਼ਰਮ ਨਹੀਂ, ਲੁਕਾਉਣ ਵਿੱਚ ਹੈ।',
+    'ਸਬਰ ਦਾ ਫਲ ਮਿੱਠਾ, ਪਰ ਪੱਕਣ ਨੂੰ ਸਮਾਂ ਲੱਗਦਾ ਹੈ।',
+    'ਮਾਰਕੀਟ ਸਮਝ ਨਾ ਆਵੇ ਤਾਂ ਬਾਹਰ ਬੈਠਣਾ ਵੀ ਇੱਕ ਫ਼ੈਸਲਾ ਹੈ।',
+    'ਟਰੇਡ ਤੋਂ ਪਹਿਲਾਂ ਹਿਸਾਬ, ਟਰੇਡ ਤੋਂ ਬਾਅਦ ਬਹੀ।',
+    'ਇੱਕ ਦਿਨ ਦੀ ਜਿੱਤ ਕਿਸੇ ਨੂੰ ਉਸਤਾਦ ਨਹੀਂ ਬਣਾਉਂਦੀ।',
+    'ਸਭ ਤੋਂ ਵੱਡਾ ਮੁਕਾਬਲਾ ਮਾਰਕੀਟ ਨਾਲ ਨਹੀਂ, ਆਪਣੇ ਮਨ ਨਾਲ ਹੈ।',
+    'ਘਰ ਦਾ ਪੈਸਾ ਘਰ ਲਈ, ਟਰੇਡਿੰਗ ਦਾ ਵੱਖਰਾ।',
+    'ਹੌਲੀ ਚੱਲਣ ਵਾਲਾ ਪਹੁੰਚ ਜਾਂਦਾ ਹੈ, ਡਿੱਗਣ ਵਾਲਾ ਨਹੀਂ।',
+    'ਜਿਹੜਾ ਰੁਕਣਾ ਜਾਣਦਾ ਹੈ, ਉਹੀ ਟਿਕਦਾ ਹੈ।',
+    'ਅੱਜ ਦਾ ਟੀਚਾ ਪੈਸਾ ਨਹੀਂ, ਨਿਯਮ ਹੈ।'
+  ];
+  const DKEY='bahi-daily';
+  function personalLine(){
+    if(!S.trades.length)return isMinor()
+      ?'ਤੁਸੀਂ ਸਹੀ ਉਮਰ ਵਿੱਚ ਸਿੱਖਣਾ ਸ਼ੁਰੂ ਕੀਤਾ ਹੈ! 🌱 ਪੇਪਰ ਟਰੇਡ ਨਾਲ ਹੱਥ ਪੱਕਾ ਕਰੋ, ਅਸਲ ਪੈਸਾ 18 ਤੋਂ ਬਾਅਦ।'
+      :'ਅੱਜ ਪਹਿਲਾ ਪੇਪਰ ਟਰੇਡ ਲਿਖ ਕੇ ਸ਼ੁਰੂ ਕਰੋ। ਹਰ ਟਰੇਡਰ ਇੱਥੋਂ ਹੀ ਸ਼ੁਰੂ ਹੁੰਦਾ ਹੈ। 📖';
+    const t=todayStr(); const g=group(S.trades,'date');
+    const past=Object.keys(g).filter(d=>d<t).sort();
+    if(!past.length)return 'ਵਧੀਆ ਸ਼ੁਰੂਆਤ ਹੈ। ਹਰ ਟਰੇਡ ਲਿਖਦੇ ਰਹੋ, ਬਹੀ ਆਪੇ ਰਾਹ ਦਿਖਾਏਗੀ। 📖';
+    const last=past[past.length-1], list=g[last];
+    const gapDays=Math.round((new Date(t)-new Date(last))/86400000);
+    const st=streaks().cur;
+    const cap=S.settings.cap||0, dayLimit=cap*(S.settings.dayPct||0)/100;
+    const realSum=list.filter(x=>x.mode==='real').reduce((a,x)=>a+x.pnl,0);
+    if(list.some(x=>x.rules==='no'))
+      return 'ਪਿਛਲੀ ਵਾਰ ਇੱਕ ਨਿਯਮ ਟੁੱਟਿਆ, ਪਰ ਤੁਸੀਂ ਉਹ ਇਮਾਨਦਾਰੀ ਨਾਲ ਲਿਖਿਆ। ਇਹੀ ਸੁਧਾਰ ਦੀ ਪਹਿਲੀ ਪੌੜੀ ਹੈ। ਅੱਜ ਨਵਾਂ ਦਿਨ ਹੈ। 🌱';
+    if(dayLimit>0&&realSum<=-dayLimit)
+      return 'ਪਿਛਲੀ ਵਾਰ ਦਿਨ ਦੀ ਹੱਦ ਉੱਤੇ ਰੁਕ ਗਏ। ਰੁਕ ਜਾਣਾ ਵੀ ਜਿੱਤ ਹੈ, ਪੂੰਜੀ ਬਚੀ ਰਹੀ। 🛡️';
+    if(gapDays>=7)
+      return 'ਕਈ ਦਿਨਾਂ ਬਾਅਦ ਆਏ ਹੋ, ਜੀ ਆਇਆਂ ਨੂੰ! ਟਰੇਡ ਨਾ ਕਰਨਾ ਵੀ ਸਬਰ ਹੈ। 🙏';
+    if(st>=3)
+      return `🔥 ${st} ਦਿਨ ਲਗਾਤਾਰ ਸਬਰ! ਬਹੁਤ ਵਧੀਆ, ਇਹ ਸਟ੍ਰੀਕ ਅੱਜ ਵੀ ਜਾਰੀ ਰੱਖੋ।`;
+    const hard=list.find(x=>['ਬਦਲਾ','ਲਾਲਚ','ਡਰ'].includes(x.mood));
+    if(hard)
+      return `ਪਿਛਲੀ ਵਾਰ ਮਨ ਵਿੱਚ ${hard.mood} ਸੀ, ਫਿਰ ਵੀ ਨਿਯਮ ਨਹੀਂ ਤੋੜੇ। ਇਹ ਅਸਲੀ ਤਾਕਤ ਹੈ। 💪`;
+    const paper=S.trades.filter(x=>x.mode==='paper').length;
+    if(paper>=40&&paper<50)
+      return `ਪੇਪਰ ਚੁਣੌਤੀ ਪੂਰੀ ਹੋਣ ਦੇ ਨੇੜੇ ਹੈ: ${paper} / 50। ਬੱਸ ਥੋੜ੍ਹਾ ਹੋਰ! 🎯`;
+    return 'ਪਿਛਲੀ ਵਾਰ ਸਾਰੇ ਨਿਯਮ ਮੰਨੇ। ਇਹੀ ਰਫ਼ਤਾਰ ਰੱਖੋ। ✅';
+  }
+  const validAge=v=>{const a=parseInt(v,10);return a>=10&&a<=100};
+  const inWelcome=()=>!$('dWelcome').hidden;
+  function fillMessage(){
+    const t=todayStr(), dayNo=Math.floor(new Date(t).getTime()/86400000);
+    const name=(S.profile.name||'').trim();
+    $('dHello').textContent=name?`ਸਤ ਸ੍ਰੀ ਅਕਾਲ, ${name} ਜੀ 🙏`:'ਅੱਜ ਦੀ ਗੱਲ';
+    $('dPersonal').textContent=personalLine();
+    $('dQuote').textContent='“'+QUOTES[dayNo%QUOTES.length]+'”';
+    $('dWelcome').hidden=true;$('dMsg').hidden=false;$('dClose').focus();
+  }
+  function showDaily(){
+    if(!(S.profile.name||'').trim()){
+      $('dMsg').hidden=true;$('dWelcome').hidden=false;$('daily').hidden=false;$('pName').focus();return;
+    }
+    let seen=null;try{seen=localStorage.getItem(DKEY)}catch(e){}
+    if(seen===todayStr())return;
+    fillMessage();$('daily').hidden=false;
+  }
+  function closeDaily(){if(inWelcome())return;$('daily').hidden=true;try{localStorage.setItem(DKEY,todayStr())}catch(e){}}
+  function checkWelcome(){$('pSave').disabled=!($('pName').value.trim()&&validAge($('pAge').value))}
+  $('pName').addEventListener('input',checkWelcome);$('pAge').addEventListener('input',checkWelcome);
+  $('pSave').addEventListener('click',()=>{
+    S.profile={name:$('pName').value.trim().slice(0,30),age:parseInt($('pAge').value,10)};persist();
+    $('eName').value=S.profile.name;$('eAge').value=S.profile.age;
+    renderStatus();fillMessage();
+  });
+  $('dClose').addEventListener('click',closeDaily);
+  $('daily').addEventListener('click',e=>{if(e.target.id==='daily')closeDaily()});
+  document.addEventListener('keydown',e=>{if(e.key==='Escape'&&!$('daily').hidden)closeDaily()});
+
+  /* ---------- Profile editor ---------- */
+  $('eName').value=S.profile.name||'';$('eAge').value=S.profile.age||'';
+  $('eName').addEventListener('input',()=>{const v=$('eName').value.trim();if(v){S.profile.name=v.slice(0,30);persist()}});
+  $('eAge').addEventListener('input',()=>{if(validAge($('eAge').value)){S.profile.age=parseInt($('eAge').value,10);persist();renderStatus()}});
+
+  calc();renderList();renderStatus();showDaily();
 })();
 </script>
 </body>
